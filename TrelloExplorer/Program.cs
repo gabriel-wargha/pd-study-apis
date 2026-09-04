@@ -41,7 +41,7 @@ if (boards is null)
 
 foreach (Board board in boards)
 {
-    Console.WriteLine($"{board.Name} [{(board.Closed ? "Closed" : "Open").PadRight(30)}] ({board.Id})");
+    Console.WriteLine($"{board.Name.PadRight(30)} [{(board.Closed ? "Closed" : "Open").PadRight(6)}] ({board.Id})");
 }
 
 return 0;
