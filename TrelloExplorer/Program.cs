@@ -21,17 +21,17 @@ if (string.IsNullOrWhiteSpace(apiToken))
     return 1;
 }
 
-string url = $"https://api.trello.com/1/members/me/boards?key={apiKey}&token={apiToken}";
+string boardsUrl = $"https://api.trello.com/1/members/me/boards?key={apiKey}&token={apiToken}";
 
 using HttpClient client = new HttpClient();
-string json = await client.GetStringAsync(url);
+string boardsJson = await client.GetStringAsync(boardsUrl);
 
 JsonSerializerOptions options = new JsonSerializerOptions
 {
     PropertyNameCaseInsensitive = true
 };
 
-List<Board>? boards = JsonSerializer.Deserialize<List<Board>>(json, options);
+List<Board>? boards = JsonSerializer.Deserialize<List<Board>>(boardsJson, options);
 
 if (boards is null)
 {
@@ -42,26 +42,44 @@ if (boards is null)
 foreach (Board board in boards)
 {
     Console.WriteLine($"{board.Name.PadRight(30)} [{(board.Closed ? "Closed" : "Open").PadRight(6)}] ({board.Id})");
+
+    string listsUrl = $"https://api.trello.com/1/boards/{board.Id}/lists?key={apiKey}&token={apiToken}";
+    string listsJson = await client.GetStringAsync(listsUrl);
+
+    List<TrelloList>? lists = JsonSerializer.Deserialize<List<TrelloList>>(listsJson, options);
+
+    if (lists is null)
+    {
+        Console.WriteLine("Could not parse the lists response.");
+        return 1;
+    }
+
+    foreach (TrelloList list in lists)
+    {
+        Console.WriteLine($"  {list.Name}");
+
+        string cardsUrl = $"https://api.trello.com/1/lists/{list.Id}/cards?key={apiKey}&token={apiToken}";
+        string cardsJson = await client.GetStringAsync(cardsUrl);
+        List<Card>? cards = JsonSerializer.Deserialize<List<Card>>(cardsJson, options);
+
+        if (cards is null)
+            {
+                Console.WriteLine("Could not parse the lists response.");
+                return 1;
+            }
+
+        foreach (Card card in cards)
+        {
+        Console.WriteLine($" .   {card.Name}");
+        }
+    }
 }
 
-string boardId = "689380436f565a02948248f1";
-string listsUrl = $"https://api.trello.com/1/boards/{boardId}/lists?key={apiKey}&token={apiToken}";
-string listsJson = await client.GetStringAsync(listsUrl);
 
-List<TrelloList>? lists = JsonSerializer.Deserialize<List<TrelloList>>(listsJson, options);
-
-if (lists is null)
-{
-    Console.WriteLine("Could not parse the lists response.");
-    return 1;
-}
-
-foreach (TrelloList list in lists){
-    Console.WriteLine($" {list.Name}");
-}
 
 return 0;
 
 public record Board(string Id, string Name, bool Closed, string Url);
 public record TrelloList(string Id, string Name);
+public record Card(string Id, string Name, DateTime? Due);
 
