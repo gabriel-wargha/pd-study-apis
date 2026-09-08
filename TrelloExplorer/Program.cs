@@ -44,7 +44,24 @@ foreach (Board board in boards)
     Console.WriteLine($"{board.Name.PadRight(30)} [{(board.Closed ? "Closed" : "Open").PadRight(6)}] ({board.Id})");
 }
 
+string boardId = "689380436f565a02948248f1";
+string listsUrl = $"https://api.trello.com/1/boards/{boardId}/lists?key={apiKey}&token={apiToken}";
+string listsJson = await client.GetStringAsync(listsUrl);
+
+List<TrelloList>? lists = JsonSerializer.Deserialize<List<TrelloList>>(listsJson, options);
+
+if (lists is null)
+{
+    Console.WriteLine("Could not parse the lists response.");
+    return 1;
+}
+
+foreach (TrelloList list in lists){
+    Console.WriteLine($" {list.Name}");
+}
+
 return 0;
 
 public record Board(string Id, string Name, bool Closed, string Url);
+public record TrelloList(string Id, string Name);
 
