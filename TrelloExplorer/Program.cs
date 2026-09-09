@@ -24,7 +24,15 @@ if (string.IsNullOrWhiteSpace(apiToken))
 string boardsUrl = $"https://api.trello.com/1/members/me/boards?key={apiKey}&token={apiToken}";
 
 using HttpClient client = new HttpClient();
-string boardsJson = await client.GetStringAsync(boardsUrl);
+HttpResponseMessage response = await client.GetAsync(boardsUrl);
+
+if (!response.IsSuccessStatusCode)
+{
+    Console.WriteLine($"Could not fetch boards: {(int)response.StatusCode} {response.StatusCode}");
+    return 1;
+}
+
+string boardsJson = await response.Content.ReadAsStringAsync();
 
 JsonSerializerOptions options = new JsonSerializerOptions
 {
