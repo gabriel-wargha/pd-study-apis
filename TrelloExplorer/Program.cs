@@ -56,7 +56,7 @@ foreach (Board board in boards)
 
     foreach (TrelloList list in lists)
     {
-        Console.WriteLine($"  {list.Name}");
+        Console.WriteLine($" . {list.Name}");
 
         string cardsUrl = $"https://api.trello.com/1/lists/{list.Id}/cards?key={apiKey}&token={apiToken}";
         string cardsJson = await client.GetStringAsync(cardsUrl);
