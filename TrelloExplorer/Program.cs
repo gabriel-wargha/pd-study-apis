@@ -52,14 +52,24 @@ foreach (Board board in boards)
     Console.WriteLine($"{board.Name.PadRight(30)} [{(board.Closed ? "Closed" : "Open").PadRight(6)}] ({board.Id})");
 
     string listsUrl = $"https://api.trello.com/1/boards/{board.Id}/lists?key={apiKey}&token={apiToken}";
-    string listsJson = await client.GetStringAsync(listsUrl);
+    HttpResponseMessage listsResponse = await client.GetAsync(listsUrl);
+
+    if (!listsResponse.IsSuccessStatusCode)
+    {
+        Console.WriteLine($"Could not fetch lists for {board.Name}: " +
+                          $"{(int)listsResponse.StatusCode} {listsResponse.StatusCode}");
+        continue;
+
+    }
+
+    string listsJson = await listsResponse.Content.ReadAsStringAsync();
 
     List<TrelloList>? lists = JsonSerializer.Deserialize<List<TrelloList>>(listsJson, options);
 
     if (lists is null)
     {
         Console.WriteLine("Could not parse the lists response.");
-        return 1;
+        continue;
     }
 
     foreach (TrelloList list in lists)
@@ -67,18 +77,30 @@ foreach (Board board in boards)
         Console.WriteLine($" . {list.Name}");
 
         string cardsUrl = $"https://api.trello.com/1/lists/{list.Id}/cards?key={apiKey}&token={apiToken}";
-        string cardsJson = await client.GetStringAsync(cardsUrl);
+
+        HttpResponseMessage cardsResponse = await client.GetAsync(cardsUrl);
+
+        if (!cardsResponse.IsSuccessStatusCode)
+        {
+            Console.WriteLine($"Could not fetch cards for {list.Name}: " +
+                              $"{(int)cardsResponse.StatusCode} {cardsResponse.StatusCode}");
+            continue;
+        }
+
+
+        string cardsJson = await cardsResponse.Content.ReadAsStringAsync();
+
         List<Card>? cards = JsonSerializer.Deserialize<List<Card>>(cardsJson, options);
 
         if (cards is null)
-            {
-                Console.WriteLine("Could not parse the lists response.");
-                return 1;
-            }
+        {
+            Console.WriteLine("Could not parse the card response.");
+            continue;
+        }
 
         foreach (Card card in cards)
         {
-        Console.WriteLine($" .   {card.Name}");
+            Console.WriteLine($" .   {card.Name}");
         }
     }
 }
