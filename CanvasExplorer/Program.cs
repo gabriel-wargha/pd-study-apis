@@ -25,7 +25,7 @@ using HttpClient client = new HttpClient();
 client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 client.DefaultRequestHeaders.UserAgent.ParseAdd("CanvasExplorer/1.0");
 
-string coursesUrl = $"{baseUrl}/api/v1/courses?per_page=5";
+string coursesUrl = $"{baseUrl}/api/v1/courses?per_page=2";
 HttpResponseMessage response = await client.GetAsync(coursesUrl);
 
 if (!response.IsSuccessStatusCode)
@@ -34,6 +34,11 @@ if (!response.IsSuccessStatusCode)
     Console.WriteLine($"Could not fetch courses: {(int)response.StatusCode} {response.StatusCode}");
     Console.WriteLine(errorBody);
     return 1;
+}
+
+foreach (var header in response.Headers)
+{
+    Console.WriteLine($"{header.Key}: {string.Join(", ", header.Value)}");
 }
 
 string coursesJson = await response.Content.ReadAsStringAsync();
