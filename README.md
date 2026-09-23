@@ -22,7 +22,7 @@ Credentials are stored with `dotnet user-secrets` and are never committed:
 
 ```bash
 dotnet user-secrets set "Trello:ApiKey" "<key>"
-dotnet user-secrets set "Trello:Token" "<token>"
+dotnet user-secrets set "Trello:ApiToken" "<token>"
 ```
 
 ### Notes
